@@ -4,7 +4,8 @@ const mongoose =require("mongoose");
 const ejs = require("ejs");
 const bodyParser = require("body-parser");
 const _ = require("lodash");
-const md5 = require("md5");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 const app = express();
 
@@ -49,38 +50,41 @@ app.get("/register" , (req,res)=>{
 });
 
 app.post("/register",(req,res)=>{
-    const user = new User({
-        email : req.body.username,
-        password : md5(req.body.password)
-    });
-
-    user.save((err)=>{
-        if(err){
-            console.log("Error in saving data of new user : "+err);
-        }else{
-            console.log("Saved Successfully!");
-            res.render("secrets");
-        }
+    bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+        const user = new User({
+            email : req.body.username,
+            password : hash
+        });
+        user.save((err)=>{
+            if(err){
+                console.log("Error in saving data of new user : "+err);
+            }else{
+                console.log("Saved Successfully!");
+                res.render("secrets");
+            }
+        });
     });
 });
 
 app.post("/login",(req,res)=>{
     const userName = req.body.username;
-    const password = md5(req.body.password);
-    console.log(password);
+    const password = req.body.password;
+
     User.findOne({email : userName},
         (err,result)=>{
             if(err){
                 console.log("Error in finding user : "+err);
             }else if(!result){
-                console.log("Username not found!");
+               res.send("<h1>Username not found!</h1>");
             }else{
-                if(password === result.password){
-                    console.log("Verified!");
-                    res.render("secrets");
-                }else{
-                    res.send("Wrong Password!");
-                }
+                bcrypt.compare(password, result.password, function(err, hashResult) {
+                    if(!hashResult){
+                        res.send("<h1>Wrong Password!</h1");
+                    }else{
+                        console.log("Verified!");
+                        res.render("secrets");
+                    }
+                });
             }
         });
 });
