@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema({
     email : String,
     password : String,
     googleId : String,
-    facebookId : String
+    secret : String
 });
 
 userSchema.plugin(passportLocalMongoose);
@@ -102,11 +102,13 @@ app.get("/register" , (req,res)=>{
 });
 
 app.get("/secrets" ,(req,res)=>{
-    if(req.isAuthenticated()){
-        res.render("secrets");
-    }else{
-        res.redirect("/login");
+  User.find({"secret": {$ne:null}},(err,result)=>{
+    if(err){
+      console.log("Error in showing secrets "+err);
+    }if(result){
+      res.render("secrets",{usersWithSecrets : result});
     }
+  });
 });
 
 app.get("/logout",(req,res)=>{
@@ -168,7 +170,34 @@ app.post("/login",(req,res)=>{
     });
 });
 
+app.get("/submit" , (req,res)=>{
+  if(req.isAuthenticated){
+    res.render("submit");
+  }else{
+    res.redirect("/login");
+  }
+});
 
+app.post("/submit",(req,res)=>{
+  const submittedSecret = req.body.secret;
+  
+  User.findById(req.user._id || req.user.email , (err, result)=>{
+    if(err){
+      console.log("Error in posting secret "+err);
+    }else if(!result){
+      console.log("No user found");
+    }else{
+      result.secret=submittedSecret;
+      result.save((err)=>{
+        if(err){
+          console.log("Error in saving the user secret!");
+        }else{
+          res.redirect("/secrets");
+        }
+      });
+    }
+  });
+});
 
 
 
