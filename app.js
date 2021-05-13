@@ -31,7 +31,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
-mongoose.connect("mongodb://localhost:27017/userDB",{
+mongoose.connect("mongodb+srv://admin_Shashwat:"+process.env.AtlasPassword+"@cluster1.yglo4.mongodb.net/userDB?retryWrites=true&w=majority",{
     useNewUrlParser : true,
     useUnifiedTopology : true,
     useCreateIndex : true
@@ -64,7 +64,7 @@ passport.serializeUser(function(user, done) {
 passport.use(new GoogleStrategy({
     clientID: process.env.OAUTH_CLIENT_ID,
     clientSecret: process.env.OAUTH_CLIENT_SECRET,
-    callbackURL: "http://localhost:3000/auth/google/secrets",
+    callbackURL: "https://agile-harbor-47891.herokuapp.com/auth/google/secrets",
     userProfileURL : "https://www.googleapis.com/oauth2/v3/userinfo"
   },
   function(accessToken, refreshToken, profile, cb) {
@@ -78,7 +78,7 @@ passport.use(new GoogleStrategy({
 passport.use(new FacebookStrategy({
     clientID: process.env.FACEBOOK_APPID,
     clientSecret: process.env.FACEBOOK_SECRET,
-    callbackURL: "http://localhost:3000/auth/facebook/secrets",
+    callbackURL: "https://agile-harbor-47891.herokuapp.com/auth/facebook/secrets",
     profileFields : ['id', 'displayName']
     
   },
@@ -199,19 +199,6 @@ app.post("/submit",(req,res)=>{
   });
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-app.listen("3000", (req,res)=>{
+app.listen(process.env.PORT || "3000", (req,res)=>{
     console.log("Server Started at port 3000!");
 });
